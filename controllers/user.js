@@ -58,3 +58,24 @@ export const signup = async (req, res) => {
     }
     
 }
+
+export const googleSignin = async (req, res) => {
+    const { name, email, googleId } = req.body;
+    const token = jwt.sign({ _id: googleId, email:email }, secret,{ expiresIn: "1h" });
+    try{
+        const oldUser = await UserModel.findOne({ email });
+        if(oldUser){
+            const result = {_id:oldUser._id,name:oldUser.name,email:oldUser.email};
+            return res.status(200).json({result,token});
+        }   
+
+        const result = await UserModel.create({ name, email, googleId});
+
+        res.status(200).json({result,token});
+    }catch(err){
+        res.status(500).json({
+            message: "Something went wrong"
+        });
+        console.log(err);
+    }
+}
